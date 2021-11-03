@@ -128,7 +128,7 @@ def class_prior_estimation(DS, DU):
     return 0.5 * (np.sqrt(2 * prior_p - 1) + 1)
 
 
-def main(loss_name, prior=0.7, n_s=500, n_d=500, end_to_end=False):
+def main(loss_name, prior=0.7, noise=0.0, n_s=500, n_d=500, end_to_end=False):
     # if loss_name == 'squared':
     #     SD = SD_SL
     # elif loss_name == 'double-hinge':
@@ -139,7 +139,7 @@ def main(loss_name, prior=0.7, n_s=500, n_d=500, end_to_end=False):
     # load dataset
     n_test = 1000
     x_s, x_d, x_test, y_test = load_dataset(n_s, n_d, n_test, prior)
-    x_train, y_train = convert_su_data_sklearn_compatible(x_s, x_d)
+    x_train, y_train = convert_su_data_sklearn_compatible(x_s, x_d, noise)
 
     if end_to_end:
         # use KM2 (Ramaswamy et al., 2016)
@@ -198,10 +198,17 @@ if __name__ == '__main__':
         default  = 0.7,
         help     = 'true class-prior (ratio of positive data)')
 
+    parser.add_argument('--noise',
+        action   = 'store',
+        required = False,
+        type     = float,
+        default  = 0.0,
+        help     = 'noise in pairwise data')
+
     parser.add_argument('--full',
         action   = 'store_true',
         default  = False,
         help     = 'do end-to-end experiment including class-prior estimation (default: false)')
 
     args = parser.parse_args()
-    main(args.loss, args.prior, args.ns, args.nd, args.full)
+    main(args.loss, args.prior, args.noise, args.ns, args.nd, args.full)
