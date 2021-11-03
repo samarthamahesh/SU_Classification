@@ -12,18 +12,34 @@ def gen0(n, dim, mean=-2, var=1):
     return np.random.normal(mean, var, size=(n, dim))
 
 
-def synth_dataset(ns, nu, prior, dim=2):
-    nsp = np.random.binomial(ns, prior**2 / (prior**2 + (1-prior)**2))
-    nsn = ns - nsp
+# def synth_dataset(ns, nu, prior, dim=2):
+#     nsp = np.random.binomial(ns, prior**2 / (prior**2 + (1-prior)**2))
+#     nsn = ns - nsp
+#     xs = np.concatenate((
+#         np.hstack((gen1(nsp, dim), gen1(nsp, dim))),
+#         np.hstack((gen0(nsn, dim), gen0(nsn, dim)))))
+
+#     nup = np.random.binomial(nu, prior)
+#     nun = nu - nup
+#     xu = np.concatenate((gen1(nup, dim), gen0(nun, dim)))
+
+#     return xs, xu
+
+def synth_dataset(ns, nd, prior, dim=2):
+    nspp = np.random.binomial(ns, prior**2 / (prior**2 + (1-prior)**2))
+    nsnn = ns - nspp
     xs = np.concatenate((
-        np.hstack((gen1(nsp, dim), gen1(nsp, dim))),
-        np.hstack((gen0(nsn, dim), gen0(nsn, dim)))))
+        np.hstack((gen1(nspp, dim), gen1(nspp, dim))),
+        np.hstack((gen0(nsnn, dim), gen0(nsnn, dim)))))
 
-    nup = np.random.binomial(nu, prior)
-    nun = nu - nup
-    xu = np.concatenate((gen1(nup, dim), gen0(nun, dim)))
 
-    return xs, xu
+    ndpn = np.random.binomial(nd, 0.5)
+    ndnp = nd - ndpn
+    xd = np.concatenate((
+        np.hstack((gen1(ndpn, dim), gen0(ndpn, dim))),
+        np.hstack((gen0(ndnp, dim), gen1(ndnp, dim)))))
+
+    return xs, xd
 
 
 def synth_dataset_test(n, prior, dim=2):
@@ -34,13 +50,24 @@ def synth_dataset_test(n, prior, dim=2):
     return x, y
 
 
-def load_dataset(n_s, n_u, n_test, prior, dim=2):
-    x_s, x_u = synth_dataset(n_s, n_u, prior, dim)
+# def load_dataset(n_s, n_u, n_test, prior, dim=2):
+#     x_s, x_u = synth_dataset(n_s, n_u, prior, dim)
+#     x_test, y_test = synth_dataset_test(n_test, prior, dim)
+#     return x_s, x_u, x_test, y_test
+
+
+# def convert_su_data_sklearn_compatible(x_s, x_u):
+#     x = np.concatenate((x_s.reshape(-1, x_s.shape[1] // 2), x_u))
+#     y = np.concatenate((np.ones(x_s.shape[0] * 2), np.zeros(x_u.shape[0])))
+#     return x, y
+
+def load_dataset(n_s, n_d, n_test, prior, dim=2):
+    x_s, x_d = synth_dataset(n_s, n_d, prior, dim)
     x_test, y_test = synth_dataset_test(n_test, prior, dim)
-    return x_s, x_u, x_test, y_test
+    return x_s, x_d, x_test, y_test
 
 
-def convert_su_data_sklearn_compatible(x_s, x_u):
-    x = np.concatenate((x_s.reshape(-1, x_s.shape[1] // 2), x_u))
-    y = np.concatenate((np.ones(x_s.shape[0] * 2), np.zeros(x_u.shape[0])))
+def convert_su_data_sklearn_compatible(x_s, x_d):
+    x = np.concatenate((x_s.reshape(-1, x_s.shape[1] // 2), x_d.reshape(-1, x_d.shape[1] // 2)))
+    y = np.concatenate((np.ones(x_s.shape[0] * 2), np.zeros(x_d.shape[0] * 2)))
     return x, y
